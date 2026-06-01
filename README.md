@@ -13,6 +13,54 @@ npm install
 npm run dev
 ```
 
+## Development Guide
+
+### Running with Docker
+
+Make sure you have [Docker](https://www.docker.com/products/docker-desktop/) installed. The `Dockerfile` in the root of this repo uses a two-stage build: the first stage compiles the Vite/React app into static files, and the second stage copies those files into an nginx image that serves them on port 80. Because Vite bakes environment variables into the bundle at build time, they must be passed as `--build-arg` flags rather than at runtime.
+
+**Build a new image after updating the code**
+
+Give the image a name and version tag using `-t name:version`. Pass your Supabase credentials and API URL as build arguments so they get embedded into the bundle. Bump the version number whenever you make changes you want to track.
+
+```bash
+docker build \
+  --build-arg VITE_SUPABASE_URL=https://your-project.supabase.co \
+  --build-arg VITE_SUPABASE_ANON_KEY=your-anon-key \
+  --build-arg VITE_API_URL=http://localhost:3000 \
+  -t wildlife-client:1.0.0 .
+```
+
+**Run a container from the image**
+
+This starts the app on port 8080 (nginx listens on 80 inside the container). `--name` gives the running container a memorable name so you can refer to it in later commands.
+
+```bash
+docker run -d -p 8080:80 --name wildlife-client wildlife-client:1.0.0
+```
+
+Open [http://localhost:8080](http://localhost:8080) in your browser to use the app.
+
+**Stop a running container**
+
+```bash
+docker stop wildlife-client
+```
+
+**Delete a container you no longer need**
+
+Stopping a container doesn't remove it — it still exists and takes up disk space. To delete it:
+
+```bash
+docker rm wildlife-client
+```
+
+To also delete the image itself (frees up more space):
+
+```bash
+docker rmi wildlife-client:1.0.0
+```
+
 ## Example placeholder data
 
 These match `src/data/placeholders.ts` until you hook up a real API.
